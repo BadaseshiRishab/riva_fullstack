@@ -255,7 +255,7 @@ app.post('/api/products', protect, async (req, res) => {
     return res.status(403).json({ message: 'Admin access required' });
   }
 
-  const { name, category, description, price, image, stock, featured, tags } = req.body;
+  const { name, category, description, price, image, images, stock, featured, tags } = req.body;
 
   if (!name || !category || price === undefined) {
     return res.status(400).json({ message: 'Name, category, and price are required' });
@@ -267,6 +267,7 @@ app.post('/api/products', protect, async (req, res) => {
     description: description || '',
     price: Number(price),
     image: image || '',
+    images: Array.isArray(images) ? images.filter(Boolean) : [],
     stock: Number(stock || 0),
     featured: Boolean(featured),
     tags: Array.isArray(tags) ? tags : [],
@@ -280,7 +281,7 @@ app.put('/api/products/:id', protect, async (req, res) => {
     return res.status(403).json({ message: 'Admin access required' });
   }
 
-  const { name, category, description, price, image, stock, featured, tags } = req.body;
+  const { name, category, description, price, image, images, stock, featured, tags } = req.body;
   const product = await Product.findById(req.params.id);
 
   if (!product) {
@@ -292,6 +293,7 @@ app.put('/api/products/:id', protect, async (req, res) => {
   product.description = description ?? product.description;
   product.price = price === undefined ? product.price : Number(price);
   product.image = image ?? product.image;
+  product.images = Array.isArray(images) ? images.filter(Boolean) : product.images;
   product.stock = stock === undefined ? product.stock : Number(stock);
   product.featured = featured === undefined ? product.featured : Boolean(featured);
   product.tags = Array.isArray(tags) ? tags : product.tags;
@@ -344,6 +346,10 @@ app.patch('/api/admin/orders/:id/status', protect, async (req, res) => {
 
   if (order.status === 'Cancelled' && status !== 'Cancelled') {
     return res.status(400).json({ message: 'Cancelled orders cannot be reopened' });
+  }
+
+  if (status === 'Cancelled' && ['Delivered', 'Returned'].includes(order.status)) {
+    return res.status(400).json({ message: 'Delivered or returned orders cannot be cancelled' });
   }
 
   if (status === 'Cancelled' && !order.stockRestored) {

@@ -1,9 +1,10 @@
-import React from 'react'
+import React, { useState } from 'react'
 import { Link, Outlet } from 'react-router-dom'
 import { useSelector } from 'react-redux'
 import logo from '../images/logo.jpg'
 
 function Navbar() {
+    const [menuOpen, setMenuOpen] = useState(false);
   const cartItems = useSelector((state) => state.cart || []);
   const wishlistItems = useSelector((state) => state.wishlist || []);
   const user = useSelector((state) => state.user);
@@ -16,28 +17,28 @@ function Navbar() {
                 <a className="navbar-brand" href="/">
                     <img src={logo} alt="Logo" width="40" className="d-inline-block align-text-top"/>
                 </a>
-                <button className="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
-                <span className="navbar-toggler-icon"></span>
+                <button className="navbar-toggler" type="button" onClick={() => setMenuOpen((open) => !open)} aria-controls="navbarSupportedContent" aria-expanded={menuOpen} aria-label="Toggle navigation">
+                <span className="navbar-toggler-icon">☰</span>
                 </button>
-                <div className="collapse navbar-collapse" id="navbarSupportedContent">
+                <div className={`collapse navbar-collapse ${menuOpen ? 'show' : ''}`} id="navbarSupportedContent">
                     <ul className="navbar-nav me-auto mb-2 mb-lg-0">
                         <li className="nav-item">
-                            <Link className="nav-link active" aria-current="page" to="/">Home</Link>
+                            <Link className="nav-link active" aria-current="page" to="/" onClick={() => setMenuOpen(false)}>Home</Link>
                         </li>
                         <li className="nav-item">
-                            <Link className="nav-link" aria-current="page" to="/men">Men</Link>
+                            <Link className="nav-link" aria-current="page" to="/men" onClick={() => setMenuOpen(false)}>Men</Link>
                         </li>
                         <li className="nav-item">
-                            <Link className="nav-link" aria-current="page" to="/women">Women</Link>
+                            <Link className="nav-link" aria-current="page" to="/women" onClick={() => setMenuOpen(false)}>Women</Link>
                         </li>
                         <li className="nav-item">
-                            <Link className="nav-link" aria-current="page" to="/kids">Kids</Link>
+                            <Link className="nav-link" aria-current="page" to="/kids" onClick={() => setMenuOpen(false)}>Kids</Link>
                         </li>
                         <li className="nav-item">
-                            <Link className="nav-link" aria-current="page" to="/beauty">Beauty</Link>
+                            <Link className="nav-link" aria-current="page" to="/beauty" onClick={() => setMenuOpen(false)}>Beauty</Link>
                         </li>
                         <li className="nav-item">
-                            <Link className="nav-link" aria-current="page" to="/living">Living</Link>
+                            <Link className="nav-link" aria-current="page" to="/living" onClick={() => setMenuOpen(false)}>Living</Link>
                         </li>
                     </ul>
 

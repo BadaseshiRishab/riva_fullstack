@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useState } from 'react'
 import { useDispatch } from 'react-redux'
 import { useNavigate } from 'react-router-dom'
 import './details.css'
@@ -38,6 +38,8 @@ const specificationsByProduct = {
 let ProductDetails = ({ product }) => {
     const dispatch = useDispatch();
     const navigate = useNavigate();
+    const galleryImages = [...new Set([...(Array.isArray(product.images) ? product.images : []), product.image].filter(Boolean))];
+    const [selectedImage, setSelectedImage] = useState(galleryImages[0] || product.image);
 
     const specifications = product.specifications || specificationsByProduct[product.name] || {
         care: 'Follow the care label instructions',
@@ -59,22 +61,22 @@ let ProductDetails = ({ product }) => {
     return (
         <section id="product-info">
             <div className="item-image-parent">
-                <div className="item-list-vertical">
-                    <div className="thumb-box">
-                        <img src={product.image} alt="thumbnail" />
-                    </div>
-                    <div className="thumb-box">
-                        <img src={product.image} alt="thumbnail" />
-                    </div>
-                    <div className="thumb-box">
-                        <img src={product.image} alt="thumbnail" />
-                    </div>
-                    <div className="thumb-box">
-                        <img src={product.image} alt="thumbnail" />
-                    </div>
+                <div className="item-list-vertical" aria-label="Product images">
+                    {galleryImages.map((image, index) => (
+                        <button
+                            type="button"
+                            className={`thumb-box ${selectedImage === image ? 'thumb-box-active' : ''}`}
+                            key={`${image}-${index}`}
+                            onClick={() => setSelectedImage(image)}
+                            aria-label={`View product image ${index + 1}`}
+                            aria-pressed={selectedImage === image}
+                        >
+                            <img src={image} alt={`${product.name} thumbnail ${index + 1}`} />
+                        </button>
+                    ))}
                 </div>
                 <div className="item-image-main">
-                    <img src={product.image} alt="default" />
+                    <img src={selectedImage} alt={product.name} />
                 </div>
             </div>
 
@@ -94,12 +96,8 @@ let ProductDetails = ({ product }) => {
                 <div className="select-items">
                     <div className="change-color">
                         <label><b>Colour:</b> Black</label><br />
-                        <div className="thumb-box">
-                            <img src={product.image} alt="thumbnail" />
-                        </div>
-                        <div className="thumb-box">
-                            <img src={product.image} alt="thumbnail" />
-                        </div>
+                        <div className="thumb-box"><img src={galleryImages[0]} alt={`${product.name} colour option`} /></div>
+                        <div className="thumb-box"><img src={galleryImages[galleryImages.length > 1 ? 1 : 0]} alt={`${product.name} colour option`} /></div>
                     </div>
 
                     <div className="change-size">

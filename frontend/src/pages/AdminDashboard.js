@@ -13,6 +13,7 @@ const emptyProduct = {
   description: '',
   price: '',
   image: '',
+  images: '',
   stock: '',
   featured: false,
   tags: '',
@@ -73,6 +74,7 @@ function AdminDashboard() {
       ...formData,
       price: Number(formData.price),
       stock: Number(formData.stock),
+      images: String(formData.images).split(',').map((image) => image.trim()).filter(Boolean),
       tags: String(formData.tags).split(',').map((tag) => tag.trim()).filter(Boolean),
     };
 
@@ -99,6 +101,7 @@ function AdminDashboard() {
       description: product.description || '',
       price: product.price ?? '',
       image: product.image || '',
+      images: Array.isArray(product.images) ? product.images.join(', ') : '',
       stock: product.stock ?? '',
       featured: Boolean(product.featured),
       tags: Array.isArray(product.tags) ? product.tags.join(', ') : '',
@@ -128,6 +131,20 @@ function AdminDashboard() {
       setStatus(`Order ${order._id?.slice(-6) || ''} marked ${status.toLowerCase()}.`);
       const refreshedProducts = await fetchProducts();
       setProducts(refreshedProducts);
+    } catch (requestError) {
+      setError(requestError.message);
+    }
+  };
+
+  const handleCancelOrder = async (order) => {
+    const orderId = order._id || order.id;
+    if (!window.confirm('Cancel this order? The items will be added back to stock.')) return;
+
+    try {
+      const updatedOrder = await updateOrderStatus(orderId, 'Cancelled');
+      setOrders((current) => current.map((item) => ((item._id || item.id) === (updatedOrder._id || updatedOrder.id) ? updatedOrder : item)));
+      setStatus(`Order ${String(orderId).slice(-6)} cancelled and stock restored.`);
+      setProducts(await fetchProducts());
     } catch (requestError) {
       setError(requestError.message);
     }
@@ -233,6 +250,9 @@ function AdminDashboard() {
                       <option value="Returned">Returned</option>
                       <option value="Cancelled">Cancelled</option>
                     </select>
+                    {!['Cancelled', 'Delivered', 'Returned'].includes(order.status) && (
+                      <button type="button" className="admin-cancel-order-button" onClick={() => handleCancelOrder(order)}>Cancel order</button>
+                    )}
                     {(order.returnRequested || order.returnStatus === 'Requested') && (
                       <div className="admin-return-box">
                         <strong>Return request</strong>
@@ -268,8 +288,9 @@ function AdminDashboard() {
             </div>
             <div className="admin-form-row">
               <label className="auth-field"><span>Stock</span><input type="number" min="0" name="stock" value={formData.stock} onChange={handleChange} required /></label>
-              <label className="auth-field"><span>Image URL</span><input type="url" name="image" value={formData.image} onChange={handleChange} /></label>
+              <label className="auth-field"><span>Primary image URL</span><input type="url" name="image" value={formData.image} onChange={handleChange} /></label>
             </div>
+            <label className="auth-field"><span>Gallery image URLs, separated by commas</span><input name="images" value={formData.images} onChange={handleChange} placeholder="https://... , https://..." /></label>
             <label className="auth-field"><span>Description</span><textarea name="description" value={formData.description} onChange={handleChange} rows="3" /></label>
             <label className="auth-field"><span>Tags, separated by commas</span><input name="tags" value={formData.tags} onChange={handleChange} /></label>
             <label className="admin-checkbox"><input type="checkbox" name="featured" checked={formData.featured} onChange={handleChange} /><span>Show as featured product</span></label>
