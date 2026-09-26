@@ -16,10 +16,11 @@ dotenv.config();
 
 connectDB();
 
-const razorpay = new Razorpay({
-  key_id: process.env.RAZORPAY_KEY_ID,
-  key_secret: process.env.RAZORPAY_KEY_SECRET,
-});
+const razorpayKeyId = process.env.RAZORPAY_KEY_ID;
+const razorpayKeySecret = process.env.RAZORPAY_KEY_SECRET;
+const razorpay = razorpayKeyId && razorpayKeySecret
+  ? new Razorpay({ key_id: razorpayKeyId, key_secret: razorpayKeySecret })
+  : null;
 
 const app = express();
 app.use(cors());
@@ -201,6 +202,10 @@ app.get('/api/products', async (req, res) => {
 });
 
 app.post('/api/payments/razorpay/order', protect, async (req, res) => {
+  if (!razorpay) {
+    return res.status(503).json({ message: 'Online payments are not configured' });
+  }
+
   const { items } = req.body;
 
   if (!Array.isArray(items) || !items.length) {
@@ -237,7 +242,7 @@ app.post('/api/payments/razorpay/order', protect, async (req, res) => {
       id: paymentOrder.id,
       amount: paymentOrder.amount,
       currency: paymentOrder.currency,
-      keyId: process.env.RAZORPAY_KEY_ID,
+      keyId: razorpayKeyId,
     });
   } catch (error) {
     console.error('Razorpay order creation failed:', error);
@@ -475,6 +480,10 @@ app.post('/api/orders', protect, async (req, res) => {
   }
 
   if (paymentMethod !== 'cod') {
+    if (!razorpay) {
+      return res.status(503).json({ message: 'Online payments are not configured' });
+    }
+
     if (!razorpayOrderId || !razorpayPaymentId || !razorpaySignature) {
       return res.status(400).json({ message: 'Successful Razorpay payment is required' });
     }

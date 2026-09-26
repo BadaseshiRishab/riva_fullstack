@@ -2219,8 +2219,8 @@
   }
 
   .carousel-banner-image {
-    height: 42vh !important;
-    object-fit: cover;
+    height: auto !important;
+    object-fit: contain;
   }
 }
 
