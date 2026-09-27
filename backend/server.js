@@ -327,6 +327,65 @@ app.get('/api/admin/orders', protect, async (req, res) => {
   res.json(orders);
 });
 
+app.get('/api/admin/users', protect, async (req, res) => {
+  if (req.user.role !== 'admin') {
+    return res.status(403).json({ message: 'Admin access required' });
+  }
+
+  const page = Math.max(1, Number.parseInt(req.query.page, 10) || 1);
+  const limit = Math.min(50, Math.max(1, Number.parseInt(req.query.limit, 10) || 20));
+  const skip = (page - 1) * limit;
+
+  const [users, total] = await Promise.all([
+    User.find({})
+      .select('name email phone address createdAt')
+      .sort({ createdAt: -1, _id: -1 })
+      .skip(skip)
+      .limit(limit)
+      .lean(),
+    User.countDocuments(),
+  ]);
+
+  const userIds = users.map((user) => user._id);
+  const orders = userIds.length
+    ? await Order.find({ userId: { $in: userIds } })
+      .select('userId items.name items.price items.quantity total status paymentMethod createdAt')
+      .sort({ createdAt: -1 })
+      .lean()
+    : [];
+
+  const ordersByUser = new Map();
+  for (const order of orders) {
+    const userId = String(order.userId);
+    const userOrders = ordersByUser.get(userId) || [];
+    userOrders.push({
+      id: String(order._id),
+      items: order.items.map(({ name, price, quantity }) => ({ name, price, quantity })),
+      total: order.total,
+      status: order.status,
+      paymentMethod: order.paymentMethod,
+      createdAt: order.createdAt,
+    });
+    ordersByUser.set(userId, userOrders);
+  }
+
+  res.json({
+    users: users.map((user) => ({
+      id: String(user._id),
+      name: user.name,
+      email: user.email,
+      phone: user.phone,
+      address: user.address,
+      createdAt: user.createdAt,
+      orders: ordersByUser.get(String(user._id)) || [],
+    })),
+    page,
+    limit,
+    total,
+    totalPages: Math.ceil(total / limit),
+  });
+});
+
 app.patch('/api/admin/orders/:id/status', protect, async (req, res) => {
   if (req.user.role !== 'admin') {
     return res.status(403).json({ message: 'Admin access required' });

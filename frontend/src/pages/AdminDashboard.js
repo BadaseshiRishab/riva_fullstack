@@ -5,7 +5,7 @@ import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import clearOrders from '../actions/clearOrders';
 import logoutUser from '../actions/logoutUser';
-import { createProduct, deleteProduct, fetchAdminOrders, fetchProducts, reviewReturnRequest, updateOrderStatus, updateProduct } from '../services/api';
+import { createProduct, deleteProduct, fetchAdminOrders, fetchAdminUsers, fetchProducts, reviewReturnRequest, updateOrderStatus, updateProduct } from '../services/api';
 
 const emptyProduct = {
   name: '',
@@ -25,6 +25,12 @@ function AdminDashboard() {
   const user = useSelector((state) => state.user);
   const [products, setProducts] = useState([]);
   const [orders, setOrders] = useState([]);
+  const [customers, setCustomers] = useState([]);
+  const [customersPage, setCustomersPage] = useState(1);
+  const [customersTotalPages, setCustomersTotalPages] = useState(1);
+  const [customersTotal, setCustomersTotal] = useState(0);
+  const [customersLoading, setCustomersLoading] = useState(false);
+  const [customersError, setCustomersError] = useState('');
   const [formData, setFormData] = useState(emptyProduct);
   const [editingId, setEditingId] = useState(null);
   const [error, setError] = useState('');
@@ -54,6 +60,33 @@ function AdminDashboard() {
 
     return () => window.clearInterval(refreshTicker);
   }, [navigate, user]);
+
+  useEffect(() => {
+    if (!user || user.role !== 'admin') return undefined;
+
+    let isActive = true;
+    const loadCustomers = async () => {
+      setCustomersLoading(true);
+      setCustomersError('');
+
+      try {
+        const result = await fetchAdminUsers(customersPage);
+        if (!isActive) return;
+        setCustomers(result.users || []);
+        setCustomersTotal(result.total || 0);
+        setCustomersTotalPages(Math.max(result.totalPages || 1, 1));
+      } catch (requestError) {
+        if (isActive) setCustomersError(requestError.message);
+      } finally {
+        if (isActive) setCustomersLoading(false);
+      }
+    };
+
+    loadCustomers();
+    return () => {
+      isActive = false;
+    };
+  }, [customersPage, user]);
 
   const handleChange = (event) => {
     const { name, value, type, checked } = event.target;
@@ -271,6 +304,52 @@ function AdminDashboard() {
               })}
             </div>
           )}
+        </section>
+
+        <section className="admin-card admin-users-card">
+          <div className="admin-card-heading">
+            <div><p className="profile-kicker">Customer accounts</p><h2>Customers</h2></div>
+            <span className="admin-customer-total">{customersTotal} total</span>
+          </div>
+          {customersError && <p className="auth-error">{customersError}</p>}
+          {customersLoading ? <p className="admin-empty-message">Loading customers...</p> : !customers.length ? (
+            <p className="admin-empty-message">No customer accounts found.</p>
+          ) : (
+            <div className="admin-user-list">
+              {customers.map((customer) => (
+                <article className="admin-user-row" key={customer.id}>
+                  <div className="admin-user-profile">
+                    <strong>{customer.name}</strong>
+                    <span>{customer.email || 'No email provided'}</span>
+                    <span>Phone: {customer.phone || 'Not provided'}</span>
+                    <span>Address: {customer.address || 'Not provided'}</span>
+                  </div>
+                  <details className="admin-user-orders">
+                    <summary>{customer.orders.length} order{customer.orders.length === 1 ? '' : 's'}</summary>
+                    {customer.orders.length ? (
+                      <ul className="admin-customer-order-list">
+                        {customer.orders.map((order) => (
+                          <li key={order.id}>
+                            <div className="admin-customer-order-heading">
+                              <strong>Order #{order.id.slice(-8)}</strong>
+                              <span>₹ {Number(order.total || 0).toFixed(2)}</span>
+                            </div>
+                            <span>{new Date(order.createdAt).toLocaleDateString()} · {order.status} · {String(order.paymentMethod || 'cod').toUpperCase()}</span>
+                            <small>{order.items.map((item) => `${item.name} × ${item.quantity}`).join(', ')}</small>
+                          </li>
+                        ))}
+                      </ul>
+                    ) : <p className="admin-empty-message">No orders placed yet.</p>}
+                  </details>
+                </article>
+              ))}
+            </div>
+          )}
+          <div className="admin-customer-pagination">
+            <button type="button" className="secondary-link-button" onClick={() => setCustomersPage((page) => Math.max(1, page - 1))} disabled={customersLoading || customersPage <= 1}>Previous</button>
+            <span>Page {customersPage} of {customersTotalPages}</span>
+            <button type="button" className="secondary-link-button" onClick={() => setCustomersPage((page) => Math.min(customersTotalPages, page + 1))} disabled={customersLoading || customersPage >= customersTotalPages}>Next</button>
+          </div>
         </section>
 
         <section className="admin-grid">

@@ -8,7 +8,7 @@ RIVA Store is a full-stack e-commerce demo built with React, Redux, Express, and
 
 - Product browsing across categories, with product details, cart, and wishlist.
 - Customer registration, login, profile, order history, cancellation, and return requests.
-- Admin product management and order/return workflows.
+- Admin customer directory with profile details and order history, plus product and order/return management.
 - Cash-on-delivery orders and optional Razorpay checkout.
 - Redux state persistence in the browser.
 
@@ -40,7 +40,7 @@ npm install
 if (-not (Test-Path .env)) { Copy-Item .env.example .env }
 ```
 
-Edit `.env` and set a unique, strong `JWT_SECRET`. The default `MONGO_URI` is `mongodb://localhost:27017/ShoppingWebsite`. Razorpay variables may remain unset if you only need the non-payment flows; configure valid Razorpay **test** credentials to exercise online checkout.
+Edit `.env` and set a unique, strong `JWT_SECRET`. The default `MONGO_URI` is `mongodb://localhost:27017/ShoppingWebsite`. To use a hosted MongoDB instance, set `MONGO_URI` to its full connection URI, including the correct database name. Do not expose an unauthenticated MongoDB server to the public internet. Razorpay variables may remain unset if you only need the non-payment flows; configure valid Razorpay **test** credentials to exercise online checkout.
 
 Start the API:
 
@@ -107,10 +107,11 @@ The API is mounted under `/api`:
 | Authentication and profile | `POST /register`, `POST /login`, `POST /admin/login`, `GET /me`, `PUT /me` |
 | Catalog | `GET /products`, `POST /products`, `PUT /products/:id`, `DELETE /products/:id` |
 | Customer orders | `POST /orders`, `GET /orders`, `PATCH /orders/:id/cancel`, `POST /orders/:id/return-request` |
+| Admin customers | `GET /admin/users?page=1&limit=20` (paginated customer details and order summaries) |
 | Admin orders | `GET /admin/orders`, `PATCH /admin/orders/:id/status`, `PATCH /admin/orders/:id/return` |
 | Razorpay | `POST /payments/razorpay/order` |
 
-Protected routes require a bearer token. Product creation, editing, deletion, and admin order operations additionally require the admin role.
+Protected routes require a bearer token. Product creation, editing, deletion, customer directory access, and admin order operations additionally require the admin role.
 
 ## Security and Performance Notes
 

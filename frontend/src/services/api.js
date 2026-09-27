@@ -247,6 +247,15 @@ export const fetchAdminOrders = async () => {
   return readResponse(response, 'Failed to fetch admin orders');
 };
 
+export const fetchAdminUsers = async (page = 1) => {
+  const response = await fetch(`${API_URL}/admin/users?page=${page}&limit=20`, {
+    method: 'GET',
+    headers: getAuthHeaders(),
+  });
+
+  return readResponse(response, 'Failed to fetch customers');
+};
+
 export const updateOrderStatus = async (id, status) => {
   const response = await fetch(`${API_URL}/admin/orders/${id}/status`, {
     method: 'PATCH',

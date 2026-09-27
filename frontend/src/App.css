@@ -679,6 +679,105 @@
   margin-bottom: 1.5rem;
 }
 
+.admin-users-card {
+  margin-bottom: 1.5rem;
+}
+
+.admin-customer-total {
+  color: #6b7280;
+  font-size: 0.9rem;
+  font-weight: 700;
+}
+
+.admin-user-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.7rem;
+}
+
+.admin-user-row {
+  display: grid;
+  grid-template-columns: minmax(220px, 0.85fr) minmax(0, 1.15fr);
+  gap: 1rem;
+  padding: 1rem;
+  border-radius: 10px;
+  background: #f8fafc;
+}
+
+.admin-user-profile,
+.admin-user-orders {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  min-width: 0;
+}
+
+.admin-user-profile strong,
+.admin-customer-order-list strong {
+  color: #111827;
+}
+
+.admin-user-profile span,
+.admin-user-orders,
+.admin-customer-order-list > li > span {
+  color: #6b7280;
+  font-size: 0.88rem;
+  overflow-wrap: anywhere;
+}
+
+.admin-user-orders summary {
+  color: #1f2937;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.admin-customer-order-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+  margin: 0.6rem 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.admin-customer-order-list li {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  padding-top: 0.6rem;
+  border-top: 1px solid #e5e7eb;
+}
+
+.admin-customer-order-heading {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.75rem;
+  color: #1f2937;
+}
+
+.admin-customer-order-list small {
+  color: #4b5563;
+  overflow-wrap: anywhere;
+}
+
+.admin-customer-pagination {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  margin-top: 1rem;
+}
+
+.admin-customer-pagination span {
+  color: #6b7280;
+  font-size: 0.88rem;
+}
+
+.admin-customer-pagination button:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
 .admin-empty-message {
   margin: 0;
   color: #6b7280;
